@@ -2,7 +2,7 @@ local splib = loadstring(game:HttpGet("https://raw.githubusercontent.com/as6cd0/
 
 local Window = splib:MakeWindow({
  Name = "XX Script v1",
- SubTitle = "by splib",
+ SubTitle = "By SuperCosmos",
  Setting = true,
  Intro = true,
  IntroText = "XX script Loading",
