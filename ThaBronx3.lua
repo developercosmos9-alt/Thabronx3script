@@ -1,3 +1,4 @@
+local splib = loadstring(game:HttpGet("https://raw.githubusercontent.com/as6cd0/SP_Hub/refs/heads/main/splibv2"))()
 local Window = splib:MakeWindow({
  Name = "SP Library v2",
  SubTitle = "by splib",
