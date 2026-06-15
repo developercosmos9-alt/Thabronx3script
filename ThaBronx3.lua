@@ -178,3 +178,144 @@ Tab:AddToggle({
 end
 	end    
 })
+
+Tab:AddToggle({
+   IsMobile = false,
+   IsPC = false,
+   PremiumOnly = false,
+   HidePremium = false,
+   Name = "Esp",
+   Desc = "Shows other players",
+   Default = false,
+   Flag = "ToggleSave",
+	Callback = function(Value)
+		-- // Roblox ESP Script with Name + Distance
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local Camera = workspace.CurrentCamera
+
+local LocalPlayer = Players.LocalPlayer
+
+-- Settings
+local Settings = {
+    BoxColor = Color3.fromRGB(255, 0, 0),
+    TextColor = Color3.fromRGB(255, 255, 255),
+    TeamColor = true,           -- Use team colors
+    ShowDistance = true,
+    ShowName = true,
+    ShowHealth = true,
+    Thickness = 2,
+    FontSize = 14
+}
+
+local ESP = {}
+
+-- Create ESP for a player
+local function CreateESP(player)
+    if player == LocalPlayer then return end
+
+    local Box = Drawing.new("Square")
+    Box.Thickness = Settings.Thickness
+    Box.Filled = false
+    Box.Transparency = 1
+    Box.Color = Settings.BoxColor
+
+    local Name = Drawing.new("Text")
+    Name.Size = Settings.FontSize
+    Name.Center = true
+    Name.Outline = true
+    Name.Color = Settings.TextColor
+
+    local Distance = Drawing.new("Text")
+    Distance.Size = Settings.FontSize - 2
+    Distance.Center = true
+    Distance.Outline = true
+    Distance.Color = Settings.TextColor
+
+    ESP[player] = {
+        Box = Box,
+        Name = Name,
+        Distance = Distance,
+        Connections = {}
+    }
+
+    -- Update loop
+    local connection = RunService.RenderStepped:Connect(function()
+        local Character = player.Character
+        if not Character or not Character:FindFirstChild("HumanoidRootPart") or not Character:FindFirstChild("Head") then
+            Box.Visible = false
+            Name.Visible = false
+            Distance.Visible = false
+            return
+        end
+
+        local RootPart = Character.HumanoidRootPart
+        local Head = Character.Head
+        local Humanoid = Character:FindFirstChild("Humanoid")
+
+        local Vector, OnScreen = Camera:WorldToViewportPoint(RootPart.Position)
+
+        if not OnScreen then
+            Box.Visible = false
+            Name.Visible = false
+            Distance.Visible = false
+            return
+        end
+
+        local HeadPos = Camera:WorldToViewportPoint(Head.Position + Vector3.new(0, 0.5, 0))
+        local LegPos = Camera:WorldToViewportPoint(RootPart.Position - Vector3.new(0, 3, 0))
+
+        local Height = HeadPos.Y - LegPos.Y
+        local Width = Height * 0.6
+
+        -- Box
+        Box.Size = Vector2.new(Width, Height)
+        Box.Position = Vector2.new(Vector.X - Width/2, Vector.Y - Height/2 + 2)
+        Box.Color = Settings.TeamColor and player.TeamColor.Color or Settings.BoxColor
+        Box.Visible = true
+
+        -- Name
+        if Settings.ShowName then
+            Name.Text = player.Name
+            Name.Position = Vector2.new(Vector.X, HeadPos.Y - 20)
+            Name.Visible = true
+        end
+
+        -- Distance
+        if Settings.ShowDistance then
+            local DistanceValue = math.floor((LocalPlayer.Character.HumanoidRootPart.Position - RootPart.Position).Magnitude)
+            Distance.Text = DistanceValue .. " studs"
+            Distance.Position = Vector2.new(Vector.X, Vector.Y + Height/2 + 5)
+            Distance.Visible = true
+        end
+    end)
+
+    table.insert(ESP[player].Connections, connection)
+end
+
+-- Initialize ESP for all players
+for , player in ipairs(Players:GetPlayers()) do
+    if player ~= LocalPlayer then
+        CreateESP(player)
+    end
+end
+
+Players.PlayerAdded:Connect(function(player)
+    CreateESP(player)
+end)
+
+-- Cleanup when player leaves
+Players.PlayerRemoving:Connect(function(player)
+    if ESP[player] then
+        for , v in pairs(ESP[player]) do
+            if typeof(v) == "Instance" then
+                v:Remove()
+            end
+        end
+        ESP[player] = nil
+    end
+end)
+
+print("✅ ESP Loaded! (Name + Distance)")
+	end    
+})
